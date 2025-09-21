@@ -2,8 +2,9 @@ import express from "express";
 import User from "../models/user.js";
 import bcrypt from "bcrypt";
 import dotenv from "dotenv";
+import { validateSignupData } from "../validator/signupValidator.js";
 
-dotenv.config(); // Load environment variables
+dotenv.config();
 
 const authRouter = express.Router();
 
@@ -11,6 +12,12 @@ const authRouter = express.Router();
 authRouter.post("/signup", async (req, res) => {
     const { username, email, password } = req.body;
     try {
+        // Validate input data
+        const validation = validateSignupData({ username,email, password });
+        if (!validation.valid) {
+            return res.status(400).json({ message: validation.message });
+        }
+
         // Check if user already exists
         const existingUser = await User.findOne({ email });
         if (existingUser) {
@@ -34,12 +41,12 @@ authRouter.post("/login", async (req, res) => {
         // Find user by email
         const user = await User.findOne({ email });
         if (!user) {
-            return res.status(400).json({ message: "Invalid email or password" });
+            return res.status(400).json({ message: "Invalid email" });
         }
         // Compare passwords
-        const isPasswordValid = await user.validatePassword(password);
+        const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
-            return res.status(400).json({ message: "Invalid email or password" });
+            return res.status(400).json({ message: "Invalid password" });
         }
         // Generate JWT token 
         const token = user.getJwt();
@@ -51,12 +58,16 @@ authRouter.post("/login", async (req, res) => {
             sameSite: "strict"
         });
 
-        res.status(200).json({ message: "Login successful", token });
+        res.status(200).json({ message: "Login successful"});
     }
     catch (error) {
         res.status(500).json({ message: "Server error", error: error.message });
     }
 });
+
+
+//update password
+//reset password
 
 // User Logout
 authRouter.post("/logout", (req, res) => {

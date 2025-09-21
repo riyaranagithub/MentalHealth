@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 import validator from "validator";
-import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 const userSchema = new mongoose.Schema({
@@ -31,7 +30,7 @@ const userSchema = new mongoose.Schema({
     required: [true, "Password is required"],
       validate: {
       validator: function (value) {
-        // console.log("Password validator running...");
+        console.log("Password validator running...");
         return validator.isStrongPassword(value, {
           minLength: 8,
           minUppercase: 1,
@@ -51,11 +50,7 @@ userSchema.methods.getJwt= function () {
    return token;
   
 }
-userSchema.methods.validatePassword = async function(password){
-  const user = this
-  const isPasswordValid = await bcrypt.compare(password, user.password);
-  return isPasswordValid;
-}
+
 
 const User = mongoose.model("User", userSchema);
 export default User;
