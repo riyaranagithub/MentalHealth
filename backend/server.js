@@ -4,6 +4,8 @@ import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import authRouter from "./routes/authRoutes.js";
 import journalRouter from "./routes/journalRoutes.js";
+import chatRouter from "./routes/chatRoutes.js";
+import conversationRouter from "./routes/conversationRoutes.js";
 
 // Middleware to protect routes
 import { authenticateToken } from "./middleware/authMiddleware.js";
@@ -21,6 +23,8 @@ const PORT = process.env.PORT || 5000;
 
 app.use("/auth", authRouter);
 app.use("/journal", authenticateToken, journalRouter);
+app.use("/chat", authenticateToken, chatRouter);
+app.use("/conversation", authenticateToken, conversationRouter);
 
 
 

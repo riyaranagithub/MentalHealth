@@ -15,7 +15,7 @@ authRouter.post("/signup", async (req, res) => {
         // Validate input data
         const validation = validateSignupData({ username,email, password });
         if (!validation.valid) {
-            return res.status(400).json({ message: validation.message });
+            return res.status(400).json({ message: validation.message  });
         }
 
         // Check if user already exists

@@ -1,5 +1,7 @@
 
 export const validatePassword = (password) => {
+
+
   if (!password || password.trim() === "") {
     return { valid: false, message: "Password is required" };
   }
