@@ -1,5 +1,15 @@
 import mongoose from "mongoose";
 
+const moodEmojiMap = {
+  happy: "😊",
+  sad: "😢",
+  anxious: "😰",
+  angry: "😡",
+  calm: "😌",
+  neutral: "😐",
+  excited: "🤩",
+};
+
 const journalSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
@@ -32,7 +42,14 @@ const journalSchema = new mongoose.Schema({
         enum: ["poor", "average", "good", "excellent"]
     },
     reflection: { type: String },
-});
 
+}
+,{ toJSON: { virtuals: true }, toObject: { virtuals: true } }
+);
+
+// Virtual field for emoji
+journalSchema.virtual("moodEmoji").get(function () {
+  return typeof this.mood === "string" ? moodEmojiMap[this.mood] : undefined;
+});
 
 export default mongoose.model("Journal", journalSchema);

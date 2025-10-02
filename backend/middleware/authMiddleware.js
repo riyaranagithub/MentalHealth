@@ -4,16 +4,25 @@ dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET;
 
 
-// Middleware to protect routes
 function authenticateToken(req, res, next) {
-  const token = req.cookies?.token || req.headers["authorization"]?.split(" ")[1];
-  if (!token) return res.status(401).json({ message: "Access denied" });
+  const token =
+    req.cookies?.token || req.headers["authorization"]?.split(" ")[1];
+console.log("Authenticating token:", token);
+console.log("Cookies in authMiddleware:", req.cookies);
+  if (!token) {
+    req.user = null;
+    return next();
+  }
 
   jwt.verify(token, JWT_SECRET, (err, user) => {
-    if (err) return res.status(403).json({ message: "Invalid or expired token" });
+    if (err) {
+      req.user = null;
+      return next();
+    }
     req.user = user;
     next();
   });
 }
+
 
 export { authenticateToken };

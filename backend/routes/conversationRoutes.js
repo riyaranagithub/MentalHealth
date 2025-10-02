@@ -28,6 +28,7 @@ conversationRouter.post("/save", async (req, res) => {
 // Get all conversations for a user
 conversationRouter.get("/", async (req, res) => {
   try {
+    console.log("Fetching conversations for user:", req.user);
     
     const userId  = req.user._id; // Assuming user ID is available in req.user
     console.log("Fetching conversations for user:", userId);

@@ -36,6 +36,7 @@ journalRouter.post('/',  async (req, res) => {
     
 // Get all journal entries for the logged-in user
 journalRouter.get('/',  async (req, res) => {
+    // console.log("Fetching journal entries for user:", req.user);
     try {
         const entries = await Journal.find({ user: req.user._id }).sort({ date: -1 });   res.status(200).json(entries);
     } catch (error) {
