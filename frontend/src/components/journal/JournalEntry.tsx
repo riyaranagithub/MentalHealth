@@ -3,7 +3,7 @@ import { Badge } from "../ui/badge";
 import { Progress } from "../ui/progress";
 import { Button } from "../ui/button";
 import { Edit, Trash2, Calendar } from "lucide-react";
-import {type JournalEntry } from "@/stores/journal-store";
+import {  type JournalEntry } from "@/stores/journal-store";
 import { format } from "date-fns"
 
 interface JournalEntryProps {
@@ -17,10 +17,10 @@ interface JournalEntryProps {
 export function JournalEntry({ entry, onClick, onEdit, onDelete }: JournalEntryProps) {
   const getSleepQualityColor = (quality: string) => {
     switch (quality) {
-      case "Poor": return "bg-red-100 text-red-700 border-red-200";
-      case "Average": return "bg-yellow-100 text-yellow-700 border-yellow-200";
-      case "Good": return "bg-green-100 text-green-700 border-green-200";
-      case "Excellent": return "bg-blue-100 text-blue-700 border-blue-200";
+      case "poor": return "bg-red-100 text-red-700 border-red-200";
+      case "average": return "bg-yellow-100 text-yellow-700 border-yellow-200";
+      case "good": return "bg-green-100 text-green-700 border-green-200";
+      case "excellent": return "bg-blue-100 text-blue-700 border-blue-200";
       default: return "bg-gray-100 text-gray-700";
     }
   };
@@ -29,6 +29,7 @@ export function JournalEntry({ entry, onClick, onEdit, onDelete }: JournalEntryP
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength) + "...";
   };
+
 
   return (
     <Card className="bg-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden group cursor-pointer">

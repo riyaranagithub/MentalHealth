@@ -12,7 +12,6 @@ import { useAuthStore } from "@/providers/auth-store-provider";
 import { useRouter } from 'next/navigation';
 
 
-
 interface LoginFormData {
   email: string;
   password: string;
@@ -50,7 +49,8 @@ export function AuthForm() {
         return;
       }
       toast.success('Login successful!');
-      router.push('/'); // Redirect after successful login
+      console.log("Login successful, navigating to home.");
+      router.push('/'); 
 
       loginForm.reset();
     } catch (err) {

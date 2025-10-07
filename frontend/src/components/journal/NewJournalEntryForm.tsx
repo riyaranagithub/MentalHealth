@@ -11,20 +11,22 @@ import { JournalEntry } from "@/stores/journal-store";
 
 interface NewJournalEntryFormProps {
   onBack: () => void;
-  // onSave: (entry: Omit<JournalEntry, 'id'>) => void;
+  onSave: (entry: Omit<JournalEntry, '_id'|'user'|'date'>) => void;
+  existingEntry?: Omit<JournalEntry, '_id'|'user'|'date'> | null;
 }
 
-const moodOptions = [
-  { value: "😊 Happy", emoji: "😊", text: "Happy" },
-  { value: "😢 Sad", emoji: "😢", text: "Sad" },
-  { value: "😟 Anxious", emoji: "😟", text: "Anxious" },
-  { value: "😡 Angry", emoji: "😡", text: "Angry" },
-  { value: "😌 Calm", emoji: "😌", text: "Calm" },
-  { value: "😐 Neutral", emoji: "😐", text: "Neutral" },
-  { value: "🤩 Excited", emoji: "🤩", text: "Excited" }
-];
 
-const sleepQualityOptions = ["Poor", "Average", "Good", "Excellent"] as const;
+const sleepQualityOptions = ["poor", "average", "good", "excellent"] as const;
+
+const moodOptions = [
+  { value: "happy", emoji: "😊", text: "Happy" },
+  { value: "sad", emoji: "😢", text: "Sad" },
+  { value: "anxious", emoji: "😟", text: "Anxious" },
+  { value: "angry", emoji: "😠", text: "Angry" },
+  { value: "calm", emoji: "😌", text: "Calm" },
+  { value: "neutral", emoji: "😐", text: "Neutral" },
+  { value: "excited", emoji: "🤩", text: "Excited" },
+];
 
 const copingActivitiesOptions = [
   "Meditation", "Exercise", "Reading", "Talking to a friend", 
@@ -32,16 +34,20 @@ const copingActivitiesOptions = [
   "Art/Creative work", "Nature time", "Yoga", "Sleep"
 ];
 
-export function NewJournalEntryForm({ onBack}: NewJournalEntryFormProps) {
-  const [formData, setFormData] = useState({
-    mood: "",
-    stressLevel: [5],
-    energyLevel: [5],
-    sleepQuality: "",
-    triggers: "",
-    gratitude: "",
-    copingActivities: [] as string[],
-    reflection: ""
+export function NewJournalEntryForm({ onBack,onSave,existingEntry}: NewJournalEntryFormProps) {
+
+  
+console.log("existing entry ",existingEntry);
+ const [formData, setFormData] = useState({
+    mood: existingEntry?.mood || "",
+    moodEmoji:existingEntry?.moodEmoji||"",
+    stressLevel: [existingEntry?.stressLevel || 5],
+    energyLevel: [existingEntry?.energyLevel || 5],
+    sleepQuality: existingEntry?.sleepQuality || "",
+    triggers: existingEntry?.triggers || "",
+    gratitude: existingEntry?.gratitude || "",
+    copingActivities: existingEntry?.copingActivities || [],
+    reflection: existingEntry?.reflection || ""
   });
 
   // Get today's date
@@ -60,28 +66,60 @@ export function NewJournalEntryForm({ onBack}: NewJournalEntryFormProps) {
     }));
   };
 
-  // const handleSubmit = (e: React.FormEvent) => {
-  //   e.preventDefault();
-    
-  //   const selectedMood = moodOptions.find(m => m.value === formData.mood);
-  //   if (!selectedMood) return;
+   const [errors, setErrors] = useState({
+    mood: "",
+    sleepQuality: "",
+    gratitude: "",
+    reflection: "",
+  });
 
-  //   const newEntry: Omit<JournalEntry, 'id'> = {
-  //     date: today,
-  //     mood: {
-  //       emoji: selectedMood.emoji,
-  //       text: selectedMood.text
-  //     },
-  //     stressLevel: formData.stressLevel[0],
-  //     energyLevel: formData.energyLevel[0],
-  //     sleepQuality: formData.sleepQuality as any,
-  //     gratitude: formData.gratitude,
-  //     copingActivities: formData.copingActivities,
-  //     reflection: formData.reflection
-  //   };
+  const validate = () => {
+    const newErrors = {
+      mood: formData.mood ? "" : "Please select your mood.",
+      sleepQuality: formData.sleepQuality ? "" : "Please select your sleep quality.",
+      gratitude: formData.gratitude.trim() ? "" : "Please write something you’re grateful for.",
+      reflection: formData.reflection.trim() ? "" : "Please write your reflection.",
+    };
 
-  //   onSave(newEntry);
-  // };
+    setErrors(newErrors);
+    return Object.values(newErrors).every((e) => e === "");
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validate()) return;
+    const selectedMood =formData.mood;
+    if (!selectedMood) return;
+
+    // Extract the mood key from the selected mood value
+    const moodKey = selectedMood?.toLowerCase() as
+      | "happy"
+      | "sad"
+      | "anxious"
+      | "angry"
+      | "calm"
+      | "neutral"
+      | "excited";
+
+    const newEntry: Omit<JournalEntry, '_id' | 'user' |'date'> = {
+  
+      mood: moodKey,
+      moodEmoji:formData.moodEmoji,
+      stressLevel: formData.stressLevel[0],
+      energyLevel: formData.energyLevel[0],
+      sleepQuality: formData.sleepQuality as any,
+      gratitude: formData.gratitude,
+      copingActivities: formData.copingActivities,
+      reflection: formData.reflection,
+      triggers: formData.triggers,
+
+    };
+
+
+   console.log("updating or saving....")
+    onSave(newEntry);
+   
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -105,7 +143,7 @@ export function NewJournalEntryForm({ onBack}: NewJournalEntryFormProps) {
           </div>
         </div>
 
-        <form  className="space-y-6">
+        <form  className="space-y-6" onSubmit={handleSubmit}>
           {/* Date Section */}
           <Card className="bg-white border-0 shadow-md rounded-2xl">
             <CardContent className="p-6">
@@ -142,6 +180,7 @@ export function NewJournalEntryForm({ onBack}: NewJournalEntryFormProps) {
                     ))}
                   </SelectContent>
                 </Select>
+                 {errors.mood && <p className="text-red-500 text-sm mt-1">{errors.mood}</p>}
               </div>
             </CardContent>
           </Card>
@@ -171,7 +210,7 @@ export function NewJournalEntryForm({ onBack}: NewJournalEntryFormProps) {
                       className="w-full"
                     />
                   </div>
-                </div>
+                   </div>
               </CardContent>
             </Card>
 
@@ -198,7 +237,7 @@ export function NewJournalEntryForm({ onBack}: NewJournalEntryFormProps) {
                       className="w-full"
                     />
                   </div>
-                </div>
+                     </div>
               </CardContent>
             </Card>
           </div>
@@ -223,6 +262,8 @@ export function NewJournalEntryForm({ onBack}: NewJournalEntryFormProps) {
                     ))}
                   </SelectContent>
                 </Select>
+                 {errors.sleepQuality && <p className="text-red-500 text-sm mt-1">{errors.sleepQuality}</p>}
+               
               </div>
             </CardContent>
           </Card>
@@ -242,6 +283,7 @@ export function NewJournalEntryForm({ onBack}: NewJournalEntryFormProps) {
                   className="bg-white border-orange-200 rounded-xl"
                 />
               </div>
+               
             </CardContent>
           </Card>
 
@@ -260,6 +302,8 @@ export function NewJournalEntryForm({ onBack}: NewJournalEntryFormProps) {
                   className="bg-white border-yellow-200 rounded-xl"
                 />
               </div>
+               {errors.gratitude && <p className="text-red-500 text-sm mt-1">{errors.gratitude}</p>}
+               
             </CardContent>
           </Card>
 
@@ -306,6 +350,8 @@ export function NewJournalEntryForm({ onBack}: NewJournalEntryFormProps) {
                   rows={6}
                 />
               </div>
+               {errors.reflection && <p className="text-red-500 text-sm mt-1">{errors.reflection}</p>}
+               
             </CardContent>
           </Card>
 
@@ -323,7 +369,7 @@ export function NewJournalEntryForm({ onBack}: NewJournalEntryFormProps) {
               type="submit"
               className="flex-1 h-12 bg-gradient-to-r from-blue-400 to-purple-400 hover:from-blue-500 hover:to-purple-500 text-white shadow-lg rounded-xl"
             >
-              Save Entry
+             {existingEntry ? "Update Entry" : "Save Entry"}
             </Button>
           </div>
         </form>

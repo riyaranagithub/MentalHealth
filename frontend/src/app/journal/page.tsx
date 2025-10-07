@@ -6,15 +6,21 @@ import { JournalEntryModal } from "@/components/journal/JournalEntryModal";
 import { NewJournalEntryForm } from "@/components/journal/NewJournalEntryForm";
 import { useJournalStoreContext } from "@/providers/journal-store-provider";
 import { type JournalEntry as JournalEntryType } from "@/stores/journal-store";
+import { toast } from "sonner";
 
 export default function App() {
-   const [selectedEntry, setSelectedEntry] = useState<JournalEntryType | null>(null);
+  const [selectedEntry, setSelectedEntry] = useState<JournalEntryType | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showNewEntryForm, setShowNewEntryForm] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<Omit<JournalEntryType, 'user' | 'date'> | null>(null)
+
 
   const fetchJournals = useJournalStoreContext((state) => state.fetchJournals);
+  const createJournal = useJournalStoreContext((state) => state.createJournal);
+  const updateJournal = useJournalStoreContext((state) => state.updateJournal);
+  const deleteJournal = useJournalStoreContext((state)=> state.deleteJournal);
+
   const journals = useJournalStoreContext((state) => state.journals);
-console.log("Journals from store:", journals);
 
   useEffect(() => {
     fetchJournals();
@@ -24,16 +30,41 @@ console.log("Journals from store:", journals);
     setShowNewEntryForm(true);
   };
 
-  // const handleSaveNewEntry = (newEntry: Omit<JournalEntryType, 'id'>) => {
-  //   const entryWithId: JournalEntryType = {
-  //     ...newEntry,
-  //     _id: Date.now().toString()
-  //   };
-  //   // setEntries(prev => [entryWithId, ...prev]);
-  //   setShowNewEntryForm(false);
-  // };
+
+const handleSaveNewEntry = async (newEntry: Omit<JournalEntryType, '_id' | 'user' | 'date'>) => {
+  try {
+    let response;
+
+    if (editingEntry) {
+      response = await updateJournal(editingEntry._id, newEntry);
+      if (response) {
+        console.log("Reached toast trigger:", response);
+        toast.success("Journal updated successfully ✨");
+      } else {
+        toast.error("Error occurred while updating. Try again!");
+      }
+    } else {
+      response = await createJournal(newEntry);
+      if (response) {
+        toast.success("Journal created successfully 🎉");
+      } else {
+        toast.error("Error occurred while creating. Try again!");
+      }
+    }
+
+    // Reset form only if operation succeeded
+    if (response) {
+      setEditingEntry(null);
+      setShowNewEntryForm(false);
+    }
+  } catch (error) {
+    console.error("Error in handleSaveNewEntry:", error);
+    toast.error("Something went wrong. Please try again!");
+  }
+};
 
   const handleBackToJournal = () => {
+    setEditingEntry(null);
     setShowNewEntryForm(false);
   };
 
@@ -42,15 +73,37 @@ console.log("Journals from store:", journals);
     setIsModalOpen(true);
   };
 
-  const handleEdit = (entry?: JournalEntryType) => {
-    // Placeholder for edit functionality
-    console.log("Editing entry:", entry?._id || selectedEntry?._id);
+  const handleEdit = (_id: string, entry: JournalEntryType) => {
+    console.log("handle edit clicked...");
+    setEditingEntry(entry);
+    setShowNewEntryForm(true);
+    setIsModalOpen(false);
   };
 
-  const handleDelete = (entry?: JournalEntryType) => {
-    // Placeholder for delete functionality
-    console.log("Deleting entry:", entry?._id || selectedEntry?._id);
-  };
+ const handleDelete = async (entry?: JournalEntryType) => {
+  const idToDelete = entry?._id || selectedEntry?._id;
+
+  if (!idToDelete) {
+    toast.error("No journal entry selected for deletion.");
+    return;
+  }
+
+  const confirmDelete = window.confirm("Are you sure you want to delete this journal entry?");
+  if (!confirmDelete) {
+    return; // user cancelled
+  }
+
+  console.log("Deleting entry:", idToDelete);
+
+  const response = await deleteJournal(idToDelete);
+  if (response) {
+    toast.success("Journal deleted successfully.");
+    setIsModalOpen(false);
+  } else {
+    toast.error("Failed to delete journal entry.");
+  }
+};
+
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
@@ -61,7 +114,8 @@ console.log("Journals from store:", journals);
     return (
       <NewJournalEntryForm
         onBack={handleBackToJournal}
-        // onSave={handleSaveNewEntry}
+        onSave={handleSaveNewEntry}
+        existingEntry={editingEntry }
       />
     );
   }
@@ -70,14 +124,14 @@ console.log("Journals from store:", journals);
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className="max-w-4xl mx-auto px-4 py-8">
         <JournalHeader onNewEntry={handleNewEntry} />
-        
+
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
           {journals.map((entry) => (
             <JournalEntry
               key={entry._id}
               entry={entry}
               onClick={() => handleEntryClick(entry)}
-              onEdit={() => handleEdit(entry)}
+              onEdit={() => handleEdit(entry._id, entry)}
               onDelete={() => handleDelete(entry)}
             />
           ))}
@@ -87,7 +141,7 @@ console.log("Journals from store:", journals);
           entry={selectedEntry}
           isOpen={isModalOpen}
           onClose={handleCloseModal}
-          onEdit={() => handleEdit()}
+          onEdit={() => selectedEntry && handleEdit(selectedEntry._id, selectedEntry)}
           onDelete={() => handleDelete()}
         />
       </div>

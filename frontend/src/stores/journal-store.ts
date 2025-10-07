@@ -19,15 +19,14 @@ export interface JournalEntry {
 
 export interface JournalState {
   journals: JournalEntry[]
-  selectedJournal: JournalEntry | null
   loading: boolean
   error: string | null
 
   fetchJournals: () => Promise<void>
   fetchJournalById: (id: string) => Promise<void>
-  createJournal: (data: Omit<JournalEntry, "_id" | "user" | "date">) => Promise<void>
-  updateJournal: (id: string, data: Partial<JournalEntry>) => Promise<void>
-  deleteJournal: (id: string) => Promise<void>
+  createJournal: (data: Omit<JournalEntry, "_id" | "user" | "date">) => Promise<boolean>
+  updateJournal: (id: string, data: Partial<JournalEntry>) => Promise<boolean>
+  deleteJournal: (id: string) => Promise<boolean>
 }
 
 export const useJournalStore = create<JournalState>((set, get) => ({
@@ -53,15 +52,15 @@ export const useJournalStore = create<JournalState>((set, get) => ({
   },
 
   // Fetch single journal by ID
-  fetchJournalById: async (id) => {
+  fetchJournalById: async (_id) => {
     try {
       set({ loading: true, error: null })
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/journal/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/journal/${_id}`, {
         credentials: "include",
       })
       if (!res.ok) throw new Error("Failed to fetch journal")
       const data = await res.json()
-      set({ selectedJournal: data, loading: false })
+      set({loading: false })
     } catch (error: any) {
       set({ error: error.message, loading: false })
     }
@@ -77,19 +76,25 @@ export const useJournalStore = create<JournalState>((set, get) => ({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       })
-      if (!res.ok) throw new Error("Failed to create journal")
+      if (!res.ok) {
+        throw new Error("Failed to create journal");
+      }
       const result = await res.json()
+      console.log("create journal response ..", result);
       set({ journals: [result.entry, ...get().journals], loading: false })
+      return true;
     } catch (error: any) {
       set({ error: error.message, loading: false })
+      return false;
     }
   },
 
   // Update journal by ID
-  updateJournal: async (id, data) => {
+  updateJournal: async (_id, data) => {
+    
     try {
       set({ loading: true, error: null })
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/journal/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/journal/${_id}`, {
         method: "PUT",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -97,13 +102,16 @@ export const useJournalStore = create<JournalState>((set, get) => ({
       })
       if (!res.ok) throw new Error("Failed to update journal")
       const result = await res.json()
+      
+    console.log("updating journal response....",result)
       set({
-        journals: get().journals.map((j) => (j._id === id ? result.entry : j)),
-        selectedJournal: result.entry,
+        journals: get().journals.map((j) => (j._id === _id ? result.entry : j)),
         loading: false,
       })
+       return true;
     } catch (error: any) {
       set({ error: error.message, loading: false })
+      return false;
     }
   },
 
@@ -119,11 +127,12 @@ export const useJournalStore = create<JournalState>((set, get) => ({
       await res.json()
       set({
         journals: get().journals.filter((j) => j._id !== id),
-        selectedJournal: get().selectedJournal?._id === id ? null : get().selectedJournal,
         loading: false,
       })
+      return true;
     } catch (error: any) {
       set({ error: error.message, loading: false })
+      return false;
     }
   },
 }))

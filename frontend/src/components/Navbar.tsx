@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import Link from 'next/link'
 import { Button } from './ui/button'
 import {
@@ -20,9 +20,10 @@ import {
   Home,
   LogOut,
   Settings,
-  UserPlus,
   LogIn,
 } from 'lucide-react'
+
+import { usePathname } from 'next/navigation'
 
 import { useAuthStore } from '@/providers/auth-store-provider'
 
@@ -31,36 +32,47 @@ export default function Navbar() {
   const user = useAuthStore((s) => s.user)
   const logout = useAuthStore((s) => s.logout)
  
+  const pathname = usePathname();
+  // console.log(pathname);
+  const [activeItem, setActiveItem] = useState(pathname||'home')
 
-  const [activeItem, setActiveItem] = useState('home')
 
 
+  type NavigationItem = {
+    id: string;
+    label: string;
+    icon: React.ElementType;
+    link: string;
+  };
 
-  const navigationItems = [
-    { id: 'home', label: 'Home', icon: Home , link: '/'},
-    { id: 'journal', label: 'Journal', icon: BookOpen , link: '/journal'},
-    { id: 'chatbot', label: 'Chatbot', icon: MessageSquare , link: '/chatbot'},
-  ]
+  const navigationItems: NavigationItem[] = [
+    { id: 'home', label: 'Home', icon: Home , link: '/' },
+    { id: 'journal', label: 'Journal', icon: BookOpen , link: '/journal' },
+    { id: 'chatbot', label: 'Chatbot', icon: MessageSquare , link: '/chatbot' },
+  ];
 
   const NavItems = ({ mobile = false }: { mobile?: boolean }) => (
+
     <>
-      {navigationItems.map((item) => {
-        const Icon = item.icon
-        return (
-          <Button
-            key={item.id}
-            variant={activeItem === item.id ? 'default' : 'ghost'}
-            onClick={() => setActiveItem(item.id)}
-            className={mobile ? 'w-full justify-start' : ''}
-            asChild={!!item.link}
-          >
-            <Link href={item.link || '#'}>
-              <Icon className="w-4 h-4 mr-2" />
-              {item.label}
-            </Link>
-          </Button>
-        )
-      })}
+      {isLoggedIn ? (
+        navigationItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <Button
+              key={item.id}
+              variant={activeItem === item.link ? 'default' : 'ghost'}
+              onClick={() => setActiveItem(item.link)}
+              className={mobile ? 'w-full justify-start' : ''}
+              asChild={!!item.link}
+            >
+              <Link href={item.link || '#'}>
+                <Icon className="w-4 h-4 mr-2" />
+                {item.label}
+              </Link>
+            </Button>
+          );
+        })
+      ) : null}
     </>
   )
 
@@ -70,19 +82,14 @@ export default function Navbar() {
         <div className={`flex ${mobile ? 'flex-col w-full gap-2' : 'gap-2'}`}>
           <Link href="/auth">
             <Button
-              variant="outline"
+              variant="default"
               className={mobile ? 'w-full justify-start' : ''}
             >
               <LogIn className="w-4 h-4 mr-2" />
               Login
             </Button>
           
-          <Button
-            className={mobile ? 'w-full justify-start' : ''}
-          >
-            <UserPlus className="w-4 h-4 mr-2" />
-            Sign Up
-          </Button>
+          
           </Link>
         </div>
       ) : (
