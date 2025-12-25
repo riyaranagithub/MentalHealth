@@ -1,15 +1,20 @@
+'use client';
+import { HeroSection } from '../components/homepage/HeroSection';
+import { FeaturesSection } from '../components/homepage/FeaturesSection';
+import { TestimonialsSection } from '../components/homepage/TestimonialsSection';
+import { CTASection } from '../components/homepage/CTASection';
+import { Footer } from '../components/homepage/Footer';
+
 
 export default function Home() {
   return (
-   <main className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-center min-h-[calc(100vh-120px)]">
-          <div className="text-center">
-            <h1 className="text-4xl mb-4">Welcome to MyApp</h1>
-            <p className="text-muted-foreground">
-              Navigate using the menu above to explore different sections.
-            </p>
-          </div>
-        </div>
-      </main>
+    <div className="min-h-screen bg-white">
+  
+      <HeroSection />
+      <FeaturesSection />
+      <TestimonialsSection />
+      <CTASection />
+      <Footer />
+    </div>
   );
 }

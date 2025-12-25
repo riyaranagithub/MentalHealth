@@ -5,16 +5,16 @@ import { Progress } from "../ui/progress";
 import { Edit, Trash2, Calendar, Heart, Brain, Zap, Moon } from "lucide-react";
 import { type JournalEntry } from "@/stores/journal-store";
 import { format } from "date-fns"
+import JournalDelete from "./JournalDelete";
 
 interface JournalEntryModalProps {
   entry: JournalEntry | null;
   isOpen: boolean;
   onClose: () => void;
   onEdit: () => void;
-  onDelete: () => void;
 }
 
-export function JournalEntryModal({ entry, isOpen, onClose, onEdit, onDelete }: JournalEntryModalProps) {
+export function JournalEntryModal({ entry, isOpen, onClose, onEdit }: JournalEntryModalProps) {
   if (!entry) return null;
 
   const getSleepQualityColor = (quality: string) => {
@@ -46,15 +46,7 @@ export function JournalEntryModal({ entry, isOpen, onClose, onEdit, onDelete }: 
                 <Edit className="w-4 h-4 mr-2" />
                 Edit Entry
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onDelete}
-                className="hover:bg-red-50 hover:text-red-600 hover:border-red-200"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Delete Entry
-              </Button>
+              <JournalDelete idToDelete={entry._id} onClose={onClose}/>
             </div>
           </div>
         </DialogHeader>

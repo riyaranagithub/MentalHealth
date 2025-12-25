@@ -30,6 +30,7 @@ export function AuthForm() {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
 
   const loginForm = useForm<LoginFormData>();
   const signupForm = useForm<SignupFormData>();
@@ -49,9 +50,10 @@ export function AuthForm() {
         return;
       }
       toast.success('Login successful!');
+      
       console.log("Login successful, navigating to home.");
-      router.push('/'); 
-
+ router.push("/");
+    
       loginForm.reset();
     } catch (err) {
       toast.error('Login failed. Please check your credentials and try again.');
@@ -86,10 +88,11 @@ export function AuthForm() {
 
   };
 
+  
 
   return (
 
-    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-96 flex items-center justify-center p-4 relative overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <ImageWithFallback

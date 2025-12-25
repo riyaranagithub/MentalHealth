@@ -3,18 +3,19 @@ import { Badge } from "../ui/badge";
 import { Progress } from "../ui/progress";
 import { Button } from "../ui/button";
 import { Edit, Trash2, Calendar } from "lucide-react";
-import {  type JournalEntry } from "@/stores/journal-store";
+import { type JournalEntry } from "@/stores/journal-store";
 import { format } from "date-fns"
+import JournalDelete from "./JournalDelete";
 
 interface JournalEntryProps {
   entry: JournalEntry;
   onClick: () => void;
   onEdit: () => void;
-  onDelete: () => void;
+  onClose:()=>void;
 }
 
 
-export function JournalEntry({ entry, onClick, onEdit, onDelete }: JournalEntryProps) {
+export function JournalEntry({ entry, onClick, onEdit,onClose }: JournalEntryProps) {
   const getSleepQualityColor = (quality: string) => {
     switch (quality) {
       case "poor": return "bg-red-100 text-red-700 border-red-200";
@@ -38,7 +39,7 @@ export function JournalEntry({ entry, onClick, onEdit, onDelete }: JournalEntryP
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2 text-slate-600">
             <Calendar className="w-4 h-4" />
-            <span className="text-sm">{format(entry.date,"MMMM d, yyyy h:mm a")}</span>
+            <span className="text-sm">{format(entry.date, "MMMM d, yyyy h:mm a")}</span>
           </div>
           <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             <Button
@@ -52,20 +53,17 @@ export function JournalEntry({ entry, onClick, onEdit, onDelete }: JournalEntryP
             >
               <Edit className="w-4 h-4" />
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete();
-              }}
-              className="h-8 w-8 p-0 hover:bg-red-100 hover:text-red-600 rounded-full"
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
+            
 
+              {/* ✅ Wrap delete button in a stopPropagation div */}
+              <div onClick={(e) => e.stopPropagation()}>
+                <JournalDelete idToDelete={entry._id} onClose={onClose} />
+              </div>
+            </div>
+
+          </div>
+
+        
         {/* Mood */}
         <div className="mb-4">
           <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-pink-50 to-purple-50 rounded-xl">
@@ -81,8 +79,8 @@ export function JournalEntry({ entry, onClick, onEdit, onDelete }: JournalEntryP
               <span className="text-sm text-slate-600">Stress</span>
               <span className="text-sm text-slate-800">{entry.stressLevel}/10</span>
             </div>
-            <Progress 
-              value={entry.stressLevel * 10} 
+            <Progress
+              value={entry.stressLevel * 10}
               className="h-2 bg-red-100"
               style={{
                 background: 'rgb(254 226 226)'
@@ -94,8 +92,8 @@ export function JournalEntry({ entry, onClick, onEdit, onDelete }: JournalEntryP
               <span className="text-sm text-slate-600">Energy</span>
               <span className="text-sm text-slate-800">{entry.energyLevel}/10</span>
             </div>
-            <Progress 
-              value={entry.energyLevel * 10} 
+            <Progress
+              value={entry.energyLevel * 10}
               className="h-2 bg-green-100"
               style={{
                 background: 'rgb(220 252 231)'
@@ -123,8 +121,8 @@ export function JournalEntry({ entry, onClick, onEdit, onDelete }: JournalEntryP
           <span className="text-sm text-slate-600 block mb-2">Coping Activities</span>
           <div className="flex flex-wrap gap-2">
             {entry.copingActivities?.map((activity, index) => (
-              <Badge 
-                key={index} 
+              <Badge
+                key={index}
                 className="bg-gradient-to-r from-mint-100 to-green-100 text-green-700 border-green-200 rounded-full px-3 py-1"
                 style={{
                   background: 'linear-gradient(to right, rgb(220 252 231), rgb(187 247 208))',
